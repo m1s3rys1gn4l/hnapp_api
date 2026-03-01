@@ -52,10 +52,22 @@ class UserController extends Controller
         
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'sometimes|string|max:20',
         ]);
         
+        // Ensure phone is not null for new users
+        if (isset($validated['phone']) && !empty($validated['phone'])) {
+            $validated['phone'] = trim($validated['phone']);
+        }
+        
         $user->update($validated);
+        
+        \Log::info("User profile updated", [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'phone' => $user->phone,
+        ]);
         
         return response()->json([
             'message' => 'Profile updated successfully',
