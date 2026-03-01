@@ -35,4 +35,38 @@ class Book extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    /**
+     * Get all shares for this book
+     */
+    public function shares()
+    {
+        return $this->hasMany(BookShare::class);
+    }
+
+    /**
+     * Get active shares for this book
+     */
+    public function activeShares()
+    {
+        return $this->hasMany(BookShare::class)->where('status', 'active');
+    }
+
+    /**
+     * Check if book is shared with a specific user
+     */
+    public function isSharedWith(string $userId): bool
+    {
+        return $this->activeShares()
+            ->where('shared_to_user_id', $userId)
+            ->exists();
+    }
+
+    /**
+     * Get the owner of this book
+     */
+    public function getOwner(): User
+    {
+        return $this->user;
+    }
 }

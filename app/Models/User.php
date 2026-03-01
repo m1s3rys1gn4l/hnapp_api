@@ -84,6 +84,32 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all book shares created by this user (books shared TO others)
+     */
+    public function sharedBooks()
+    {
+        return $this->hasMany(BookShare::class, 'shared_by_user_id');
+    }
+
+    /**
+     * Get all book shares received by this user (books shared TO this user)
+     */
+    public function receivedShares()
+    {
+        return $this->hasMany(BookShare::class, 'shared_to_user_id');
+    }
+
+    /**
+     * Get all books shared with this user (active shares only)
+     */
+    public function booksSharedWithMe()
+    {
+        return $this->receivedShares()
+            ->where('status', 'active')
+            ->with('book');
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
