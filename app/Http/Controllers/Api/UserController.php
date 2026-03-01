@@ -55,6 +55,13 @@ class UserController extends Controller
             'phone' => 'sometimes|string|max:20',
         ]);
         
+        \Log::info("Update profile request received", [
+            'user_id' => $user->id,
+            'request_data' => $validated,
+            'current_name' => $user->name,
+            'current_phone' => $user->phone,
+        ]);
+        
         // Ensure phone is not null for new users
         if (isset($validated['phone']) && !empty($validated['phone'])) {
             $validated['phone'] = trim($validated['phone']);
@@ -67,6 +74,7 @@ class UserController extends Controller
             'email' => $user->email,
             'name' => $user->name,
             'phone' => $user->phone,
+            'updated_at' => $user->updated_at,
         ]);
         
         return response()->json([

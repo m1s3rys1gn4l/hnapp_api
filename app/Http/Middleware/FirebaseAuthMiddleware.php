@@ -56,15 +56,32 @@ class FirebaseAuthMiddleware
                 } else {
                     // Create new user
                     $freePlan = User::getPlanDefinition('free');
+                    $normalizedEmail = $decoded->email ? strtolower(trim($decoded->email)) : null;
+                    $userName = $decoded->name ?? null;
+                    
+                    \Log::info("Creating new user from Firebase token", [
+                        'firebase_uid' => $decoded->sub,
+                        'email_from_token' => $decoded->email,
+                        'normalized_email' => $normalizedEmail,
+                        'name_from_token' => $userName,
+                    ]);
+                    
                     $user = User::create([
                         'firebase_uid' => $decoded->sub,
-                        'email' => $decoded->email ? strtolower(trim($decoded->email)) : null,
-                        'name' => $decoded->name ?? null,
+                        'email' => $normalizedEmail,
+                        'name' => $userName,
                         'subscription_plan' => 'free',
                         'subscription_cycle' => null,
                         'book_limit' => $freePlan['book_limit'],
                         'customer_limit' => $freePlan['customer_limit'],
                         'show_ads' => $freePlan['show_ads'],
+                    ]);
+                    
+                    \Log::info("User created successfully", [
+                        'user_id' => $user->id,
+                        'firebase_uid' => $user->firebase_uid,
+                        'email' => $user->email,
+                        'name' => $user->name,
                     ]);
                 }
             }
