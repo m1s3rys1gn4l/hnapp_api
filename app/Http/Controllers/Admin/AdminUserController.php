@@ -45,7 +45,7 @@ class AdminUserController extends Controller
         unset($validated['password'], $validated['password_confirmation']);
 
         $validated['firebase_uid'] = $firebase['uid'];
-        $validated['email'] = $firebase['email'];
+        $validated['email'] = strtolower(trim($firebase['email']));
 
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['disabled_at'] = $validated['is_active'] ? null : now();

@@ -58,7 +58,7 @@ class FirebaseAuthMiddleware
                     $freePlan = User::getPlanDefinition('free');
                     $user = User::create([
                         'firebase_uid' => $decoded->sub,
-                        'email' => $decoded->email ?? null,
+                        'email' => $decoded->email ? strtolower(trim($decoded->email)) : null,
                         'name' => $decoded->name ?? null,
                         'subscription_plan' => 'free',
                         'subscription_cycle' => null,
