@@ -240,6 +240,79 @@ class BookController extends Controller
     }
 
     /**
+     * Get transactions for a shared book
+     */
+    public function getSharedBookTransactions(Request $request, string $bookId)
+    {
+        $user = $request->auth_user;
+
+        // Verify the book is shared with the user
+        $share = BookShare::where('book_id', $bookId)
+            ->where('shared_to_user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$share) {
+            return response()->json([
+                'message' => 'Book not shared with you',
+            ], 403);
+        }
+
+        // Get transactions from the book owner (original creator)
+        $transactions = \App\Models\Transaction::where('book_id', $bookId)
+            ->get()
+            ->map(function ($tx) {
+                return [
+                    'id' => $tx->id,
+                    'user_id' => $tx->user_id,
+                    'book_id' => $tx->book_id,
+                    'client_id' => $tx->client_id,
+                    'type' => $tx->type,
+                    'amount' => (float) $tx->amount,
+                    'note' => $tx->note,
+                    'category' => $tx->category,
+                    'date' => $tx->date->format('Y-m-d'),
+                    'created_at' => $tx->created_at->toIso8601String(),
+                    'updated_at' => $tx->updated_at->toIso8601String(),
+                ];
+            });
+
+        return response()->json($transactions);
+    }
+
+    /**
+     * Get list of users a book is shared with (for the book owner)
+     */
+    public function getBookShares(Request $request, string $bookId)
+    {
+        $user = $request->auth_user;
+
+        // Verify ownership
+        $book = $user->books()->findOrFail($bookId);
+
+        // Get all active shares
+        $shares = $book->activeShares()
+            ->with('sharedToUser')
+            ->get()
+            ->map(function ($share) {
+                return [
+                    'id' => $share->id,
+                    'book_id' => $share->book_id,
+                    'shared_to' => [
+                        'id' => $share->sharedToUser->id,
+                        'name' => $share->sharedToUser->name,
+                        'email' => $share->sharedToUser->email,
+                        'phone' => $share->sharedToUser->phone,
+                    ],
+                    'permission' => $share->permission,
+                    'shared_at' => $share->shared_at->toIso8601String(),
+                ];
+            });
+
+        return response()->json($shares);
+    }
+
+    /**
      * Revoke a book share
      */
     public function revokeShare(Request $request, string $shareId)
