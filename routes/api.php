@@ -31,6 +31,9 @@ Route::middleware('firebase.auth')->group(function () {
     
     // Books
     Route::apiResource('books', BookController::class);
+    Route::post('/books/{id}/share', [BookController::class, 'share']);
+    Route::get('/books/shared', [BookController::class, 'sharedBooks']);
+    Route::delete('/book-shares/{shareId}', [BookController::class, 'revokeShare']);
     
     // Clients
     Route::apiResource('clients', ClientController::class);
