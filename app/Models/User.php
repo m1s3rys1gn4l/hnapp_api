@@ -39,7 +39,7 @@ class User extends Authenticatable
     public const PLAN_DEFINITIONS = [
         'free' => [
             'label' => 'Free',
-            'book_limit' => 10,
+            'book_limit' => 20,
             'customer_limit' => 100,
             'show_ads' => true,
             'yearly_price_bdt' => 0,
