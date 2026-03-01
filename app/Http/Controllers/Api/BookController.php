@@ -147,17 +147,20 @@ class BookController extends Controller
             ], 422);
         }
 
-        // Find user by email or phone
+        // Find user by email or phone (case-insensitive)
         $shareWithUser = null;
         if ($validated['email']) {
-            $shareWithUser = User::where('email', $validated['email'])->first();
+            $email = strtolower(trim($validated['email']));
+            $shareWithUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
         } elseif ($validated['phone']) {
-            $shareWithUser = User::where('phone', $validated['phone'])->first();
+            $phone = trim($validated['phone']);
+            $shareWithUser = User::where('phone', $phone)->first();
         }
 
         if (!$shareWithUser) {
             return response()->json([
-                'message' => 'User not found',
+                'message' => 'User not found. Please verify the email/phone address.',
+                'searched_for' => $validated['email'] ?? $validated['phone'],
             ], 404);
         }
 
