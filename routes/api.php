@@ -7,14 +7,21 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\DiagnosticController;
 
 // Public health check
 Route::get('/', function () {
     return response()->json(['status' => 'ok', 'service' => 'Hisab Nikash API']);
 });
 
+// Public diagnostic endpoints (for debugging)
+Route::post('/debug/find-user', [DiagnosticController::class, 'findUser']);
+
 // Protected routes (require Firebase auth)
 Route::middleware('firebase.auth')->group(function () {
+    
+    // Diagnostic endpoints (protected)
+    Route::get('/debug/users', [DiagnosticController::class, 'listUsers']);
     
     // User endpoints
     Route::get('/user/profile', [UserController::class, 'profile']);
