@@ -97,6 +97,14 @@ class SyncController extends Controller
             'transactions.*.date' => 'required|date',
             'transactions.*.created_at' => 'required|date',
             'transactions.*.updated_at' => 'required|date',
+            
+            // Deletion tracking
+            'deleted_books' => 'array',
+            'deleted_books.*' => 'string',
+            'deleted_clients' => 'array',
+            'deleted_clients.*' => 'string',
+            'deleted_transactions' => 'array',
+            'deleted_transactions.*' => 'string',
         ]);
 
         $user = $request->auth_user;
@@ -135,6 +143,25 @@ class SyncController extends Controller
 
         DB::beginTransaction();
         try {
+            // Handle deletions FIRST before upserts
+            if (isset($validated['deleted_books']) && !empty($validated['deleted_books'])) {
+                Book::where('user_id', $user->id)
+                    ->whereIn('id', $validated['deleted_books'])
+                    ->delete();
+            }
+
+            if (isset($validated['deleted_clients']) && !empty($validated['deleted_clients'])) {
+                Client::where('user_id', $user->id)
+                    ->whereIn('id', $validated['deleted_clients'])
+                    ->delete();
+            }
+
+            if (isset($validated['deleted_transactions']) && !empty($validated['deleted_transactions'])) {
+                Transaction::where('user_id', $user->id)
+                    ->whereIn('id', $validated['deleted_transactions'])
+                    ->delete();
+            }
+
             // Sync books
             if (isset($validated['books'])) {
                 foreach ($validated['books'] as $bookData) {
