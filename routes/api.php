@@ -37,10 +37,13 @@ Route::middleware('firebase.auth')->group(function () {
     Route::post('/sync', [SyncController::class, 'sync']);
     
     // Books
-    Route::apiResource('books', BookController::class);
-    Route::post('/books/{id}/share', [BookController::class, 'share']);
+    // Custom routes BEFORE apiResource to avoid conflict with {id} parameter
     Route::get('/books/shared', [BookController::class, 'sharedBooks']);
+    Route::post('/books/{id}/share', [BookController::class, 'share']);
     Route::delete('/book-shares/{shareId}', [BookController::class, 'revokeShare']);
+    
+    // Main resource routes
+    Route::apiResource('books', BookController::class);
     
     // Clients
     Route::apiResource('clients', ClientController::class);
