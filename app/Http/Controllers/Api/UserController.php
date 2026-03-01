@@ -157,8 +157,9 @@ class UserController extends Controller
     /**
      * Delete user account and all associated data
      * WARNING: This is irreversible
+     * NOTE: Firebase deletion should happen on client-side before calling this endpoint
      */
-    public function deleteAccount(Request $request, FirebaseService $firebaseService)
+    public function deleteAccount(Request $request)
     {
         $user = $request->auth_user;
         
@@ -176,28 +177,30 @@ class UserController extends Controller
             // Delete clients
             $user->clients()->delete();
             
-            // Store Firebase UID before deleting user record
+            // Delete book shares (where user is the recipient)
+            \DB::table('book_shares')
+                ->where('shared_to_user_id', $user->id)
+                ->delete();
+            
+            // Delete book shares (where user is the owner)
+            \DB::table('book_shares')
+                ->where('user_id', $user->id)
+                ->delete();
+            
             $firebaseUid = $user->firebase_uid;
             $email = $user->email;
+            $userId = $user->id;
             
             // Delete the user account itself
             $user->delete();
             
             \DB::commit();
             
-            // Delete from Firebase (after successful database deletion)
-            // This prevents data inconsistency if database deletion fails
-            try {
-                $firebaseService->deleteUser($firebaseUid);
-                \Log::info('Firebase user deleted', ['uid' => $firebaseUid, 'email' => $email]);
-            } catch (\Exception $e) {
-                \Log::warning('Firebase user deletion failed', [
-                    'uid' => $firebaseUid,
-                    'email' => $email,
-                    'error' => $e->getMessage(),
-                ]);
-                // Don't fail the response - database deletion was successful
-            }
+            \Log::info('User account deleted successfully', [
+                'user_id' => $userId,
+                'firebase_uid' => $firebaseUid,
+                'email' => $email,
+            ]);
             
             return response()->json([
                 'success' => true,
