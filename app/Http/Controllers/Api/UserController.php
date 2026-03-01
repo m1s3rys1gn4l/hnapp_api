@@ -192,7 +192,7 @@ class UserController extends Controller
             
             // Delete book shares (where user is the owner)
             \DB::table('book_shares')
-                ->where('user_id', $user->id)
+                ->where('shared_by_user_id', $user->id)
                 ->delete();
             
             $firebaseUid = $user->firebase_uid;
