@@ -223,7 +223,7 @@
         </form>
 
         <div class="pagination">
-            {{ $users->links() }}
+            {{ $users->links('pagination::bootstrap-5') }}
         </div>
     </div>
 </div>
