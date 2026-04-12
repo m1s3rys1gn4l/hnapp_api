@@ -86,6 +86,7 @@ class ImportOfflineBackup extends Command
                     'id' => $clientData['id'],
                     'user_id' => $user->id,
                     'name' => $clientData['name'],
+                    'phone' => $clientData['phone'] ?? null,
                     'created_at' => $clientData['created_at'],
                     'updated_at' => $clientData['updated_at'],
                 ]);

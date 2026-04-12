@@ -37,6 +37,7 @@ class SyncController extends Controller
                 'id' => $client->id,
                 'user_id' => $client->user_id,
                 'name' => $client->name,
+                'phone' => $client->phone,
                 'created_at' => $client->created_at->toIso8601String(),
                 'updated_at' => $client->updated_at->toIso8601String(),
             ];
@@ -83,6 +84,7 @@ class SyncController extends Controller
             'clients' => 'array',
             'clients.*.id' => 'required|string',
             'clients.*.name' => 'required|string',
+            'clients.*.phone' => 'nullable|string|max:20',
             'clients.*.created_at' => 'required|date',
             'clients.*.updated_at' => 'required|date',
             
@@ -185,6 +187,7 @@ class SyncController extends Controller
                         ['id' => $clientData['id'], 'user_id' => $user->id],
                         [
                             'name' => $clientData['name'],
+                            'phone' => $clientData['phone'] ?? null,
                             'created_at' => $clientData['created_at'],
                             'updated_at' => $clientData['updated_at'],
                         ]

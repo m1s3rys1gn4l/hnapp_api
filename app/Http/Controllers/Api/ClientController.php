@@ -20,6 +20,7 @@ class ClientController extends Controller
                 'id' => $client->id,
                 'user_id' => $client->user_id,
                 'name' => $client->name,
+                'phone' => $client->phone,
                 'created_at' => $client->created_at->toIso8601String(),
                 'updated_at' => $client->updated_at->toIso8601String(),
             ];
@@ -45,6 +46,7 @@ class ClientController extends Controller
         $validated = $request->validate([
             'id' => 'nullable|uuid',
             'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
         ]);
         
         $validated['user_id'] = $user->id;
@@ -56,6 +58,7 @@ class ClientController extends Controller
             'id' => $client->id,
             'user_id' => $client->user_id,
             'name' => $client->name,
+            'phone' => $client->phone,
             'created_at' => $client->created_at->toIso8601String(),
             'updated_at' => $client->updated_at->toIso8601String(),
         ], 201);
@@ -73,6 +76,7 @@ class ClientController extends Controller
             'id' => $client->id,
             'user_id' => $client->user_id,
             'name' => $client->name,
+            'phone' => $client->phone,
             'created_at' => $client->created_at->toIso8601String(),
             'updated_at' => $client->updated_at->toIso8601String(),
         ]);
@@ -88,6 +92,7 @@ class ClientController extends Controller
         
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
+            'phone' => 'nullable|string|max:20',
         ]);
         
         $client->update($validated);
@@ -96,6 +101,7 @@ class ClientController extends Controller
             'id' => $client->id,
             'user_id' => $client->user_id,
             'name' => $client->name,
+            'phone' => $client->phone,
             'created_at' => $client->created_at->toIso8601String(),
             'updated_at' => $client->updated_at->toIso8601String(),
         ]);
