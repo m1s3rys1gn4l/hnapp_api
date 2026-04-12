@@ -44,57 +44,6 @@
         @endif
 
         <div class="card">
-            <h2>📧 Email Provider Settings</h2>
-            <form method="POST" action="{{ route('admin.settings.update-email') }}">
-                @csrf
-                @method('PUT')
-
-                <label for="mail_mailer">Mail Driver</label>
-                <select id="mail_mailer" name="mail_mailer" required>
-                    <option value="smtp" {{ old('mail_mailer', $mailMailer) === 'smtp' ? 'selected' : '' }}>SMTP</option>
-                    <option value="sendmail" {{ old('mail_mailer', $mailMailer) === 'sendmail' ? 'selected' : '' }}>Sendmail</option>
-                    <option value="mailgun" {{ old('mail_mailer', $mailMailer) === 'mailgun' ? 'selected' : '' }}>Mailgun</option>
-                    <option value="ses" {{ old('mail_mailer', $mailMailer) === 'ses' ? 'selected' : '' }}>Amazon SES</option>
-                    <option value="postmark" {{ old('mail_mailer', $mailMailer) === 'postmark' ? 'selected' : '' }}>Postmark</option>
-                    <option value="log" {{ old('mail_mailer', $mailMailer) === 'log' ? 'selected' : '' }}>Log (Development)</option>
-                </select>
-                <div class="help-text">Choose SMTP for most providers like Gmail, Outlook, etc.</div>
-
-                <label for="mail_host">SMTP Host</label>
-                <input id="mail_host" type="text" name="mail_host" value="{{ old('mail_host', $mailHost) }}" placeholder="smtp.gmail.com">
-                <div class="help-text">Gmail: smtp.gmail.com, Outlook: smtp-mail.outlook.com</div>
-
-                <label for="mail_port">SMTP Port</label>
-                <input id="mail_port" type="number" name="mail_port" value="{{ old('mail_port', $mailPort) }}" placeholder="587">
-                <div class="help-text">TLS: 587, SSL: 465</div>
-
-                <label for="mail_username">SMTP Username</label>
-                <input id="mail_username" type="text" name="mail_username" value="{{ old('mail_username', $mailUsername) }}" placeholder="your-email@gmail.com">
-
-                <label for="mail_password">SMTP Password</label>
-                <input id="mail_password" type="password" name="mail_password" value="{{ old('mail_password', '') }}" placeholder="Leave blank to keep current">
-                <div class="help-text">For Gmail, use App Password (not your regular password)</div>
-
-                <label for="mail_encryption">Encryption</label>
-                <select id="mail_encryption" name="mail_encryption">
-                    <option value="tls" {{ old('mail_encryption', $mailEncryption) === 'tls' ? 'selected' : '' }}>TLS (Recommended)</option>
-                    <option value="ssl" {{ old('mail_encryption', $mailEncryption) === 'ssl' ? 'selected' : '' }}>SSL</option>
-                    <option value="null" {{ old('mail_encryption', $mailEncryption) === 'null' ? 'selected' : '' }}>None</option>
-                </select>
-
-                <label for="mail_from_address">From Email Address</label>
-                <input id="mail_from_address" type="email" name="mail_from_address" value="{{ old('mail_from_address', $mailFromAddress) }}" required>
-
-                <label for="mail_from_name">From Name</label>
-                <input id="mail_from_name" type="text" name="mail_from_name" value="{{ old('mail_from_name', $mailFromName) }}" required>
-
-                <div class="actions">
-                    <button class="btn btn-primary" type="submit">Save Email Settings</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="card">
             <h2>🔐 Admin Credentials</h2>
             <form method="POST" action="{{ route('admin.settings.update') }}">
                 @csrf
@@ -117,6 +66,7 @@
                 </div>
             </form>
         </div>
+    </div>
 </div>
 </body>
 </html>
