@@ -25,7 +25,67 @@
         .errors { margin-bottom: 10px; padding: 10px; border-radius: 8px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .actions { display: flex; gap: 8px; }
         .meta { color: #64748b; font-size: 12px; }
-        .pagination { margin-top: 14px; }
+        .pagination {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+        }
+        .pagination nav,
+        .pagination > div {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .pagination ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .pagination li {
+            margin: 0;
+            display: inline-flex;
+        }
+        .pagination a,
+        .pagination span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #1f2937;
+            background: #fff;
+            font-size: 13px;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .pagination .active span,
+        .pagination [aria-current="page"] span {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+        .pagination .disabled span,
+        .pagination [aria-disabled="true"] span {
+            color: #94a3b8;
+            background: #f8fafc;
+        }
+        .pagination svg {
+            width: 14px;
+            height: 14px;
+        }
+        .pagination .flex.justify-between {
+            width: auto;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
         .bulk-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
     </style>
 </head>
