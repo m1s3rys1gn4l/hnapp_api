@@ -47,19 +47,11 @@ class User extends Authenticatable
         ],
         'premium' => [
             'label' => 'Premium',
-            'book_limit' => 50,
-            'customer_limit' => 1000,
-            'show_ads' => false,
-            'yearly_price_bdt' => 500,
-            'monthly_price_bdt' => 42,
-        ],
-        'business' => [
-            'label' => 'Business',
             'book_limit' => null,
             'customer_limit' => null,
             'show_ads' => false,
-            'yearly_price_bdt' => 800,
-            'monthly_price_bdt' => 67,
+            'yearly_price_bdt' => 500,
+            'monthly_price_bdt' => 42,
         ],
     ];
 
@@ -143,6 +135,12 @@ class User extends Authenticatable
     public static function getPlanDefinition(string $plan): array
     {
         return self::PLAN_DEFINITIONS[$plan] ?? self::PLAN_DEFINITIONS['free'];
+    }
+
+    public function normalizedPlanKey(): string
+    {
+        $plan = $this->subscription_plan ?? 'free';
+        return array_key_exists($plan, self::PLAN_DEFINITIONS) ? $plan : 'free';
     }
 
     public function applyPlan(string $plan, ?string $cycle = null, bool $resetDates = true): void

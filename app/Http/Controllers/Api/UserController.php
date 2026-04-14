@@ -14,7 +14,7 @@ class UserController extends Controller
     public function profile(Request $request)
     {
         $user = $request->auth_user;
-        $planDefinition = \App\Models\User::getPlanDefinition($user->subscription_plan ?? 'free');
+        $normalizedPlan = $user->normalizedPlanKey();
 
         return response()->json([
             'id' => $user->id,
@@ -23,8 +23,8 @@ class UserController extends Controller
             'name' => $user->name,
             'phone' => $user->phone,
             'subscription' => [
-                'plan' => $user->subscription_plan ?? 'free',
-                'cycle' => $user->subscription_cycle,
+                'plan' => $normalizedPlan,
+                'cycle' => $normalizedPlan === 'free' ? null : $user->subscription_cycle,
                 'book_limit' => $user->effectiveBookLimit(),
                 'customer_limit' => $user->effectiveCustomerLimit(),
                 'show_ads' => $user->effectiveShowAds(),
@@ -119,15 +119,6 @@ class UserController extends Controller
                     'show_ads' => $definitions['premium']['show_ads'],
                     'yearly_price_bdt' => $definitions['premium']['yearly_price_bdt'],
                     'monthly_price_bdt' => $definitions['premium']['monthly_price_bdt'],
-                ],
-                [
-                    'key' => 'business',
-                    'name' => $definitions['business']['label'],
-                    'book_limit' => $definitions['business']['book_limit'],
-                    'customer_limit' => $definitions['business']['customer_limit'],
-                    'show_ads' => $definitions['business']['show_ads'],
-                    'yearly_price_bdt' => $definitions['business']['yearly_price_bdt'],
-                    'monthly_price_bdt' => $definitions['business']['monthly_price_bdt'],
                 ],
             ],
         ]);

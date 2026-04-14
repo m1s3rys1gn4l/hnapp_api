@@ -252,6 +252,8 @@
             <tbody>
             @forelse ($users as $user)
                 @php($isMappedAdminUser = isset($adminMappedUserId) && $adminMappedUserId === $user->id)
+                @php($normalizedPlan = $user->normalizedPlanKey())
+                @php($planLabel = \App\Models\User::getPlanDefinition($normalizedPlan)['label'])
                 <tr>
                     <td>
                         @if (!$isMappedAdminUser)
@@ -266,8 +268,8 @@
                     </td>
                     <td>{{ $user->phone ?: '-' }}</td>
                     <td>
-                        <div class="badge badge-plan">{{ ucfirst($user->subscription_plan ?? 'free') }}</div>
-                        <div class="meta">{{ $user->subscription_cycle ? ucfirst($user->subscription_cycle) : 'N/A' }}</div>
+                        <div class="badge badge-plan">{{ $planLabel }}</div>
+                        <div class="meta">{{ $normalizedPlan === 'free' ? 'N/A' : ucfirst($user->subscription_cycle ?? 'yearly') }}</div>
                             @if ($user->subscription_expires_at)
                                 @if ($user->subscription_expires_at->isPast())
                                     <div class="meta" style="color: #dc2626;">❌ Expired {{ $user->subscription_expires_at->diffForHumans() }}</div>
