@@ -29,34 +29,55 @@ class FirebaseAuthMiddleware
             // Verify Firebase ID token
             $decoded = $this->verifyFirebaseToken($token);
             
+            $tokenEmail = isset($decoded->email) && is_string($decoded->email)
+                ? strtolower(trim($decoded->email))
+                : null;
+            $tokenPhone = isset($decoded->phone_number) && is_string($decoded->phone_number)
+                ? trim($decoded->phone_number)
+                : null;
+
             // Check if firebase_uid exists
             $user = User::where('firebase_uid', $decoded->sub)->first();
             
             if ($user) {
-                // User exists with this firebase_uid
-                // Update email if changed
-                if ($decoded->email && $user->email !== $decoded->email) {
-                    $user->update(['email' => $decoded->email]);
+                // User exists with this firebase_uid, update changed profile fields from token.
+                $updates = [];
+                if ($tokenEmail && $user->email !== $tokenEmail) {
+                    $updates['email'] = $tokenEmail;
+                }
+                if ($tokenPhone && $user->phone !== $tokenPhone) {
+                    $updates['phone'] = $tokenPhone;
+                    $updates['is_phone_verified'] = true;
+                    $updates['phone_verified_at'] = now();
+                }
+                if (!empty($updates)) {
+                    $user->update($updates);
                 }
             } else {
                 // User doesn't exist with this firebase_uid
                 // Check if user with same email already exists
-                $existingUser = $decoded->email 
-                    ? User::where('email', $decoded->email)->first() 
+                $existingUser = $tokenEmail
+                    ? User::whereRaw('LOWER(email) = ?', [$tokenEmail])->first()
                     : null;
                 
                 if ($existingUser) {
                     // Merge: Update existing user with new firebase_uid
-                    $existingUser->update([
+                    $mergeUpdates = [
                         'firebase_uid' => $decoded->sub,
                         'name' => $decoded->name ?? $existingUser->name,
-                    ]);
+                    ];
+                    if ($tokenPhone) {
+                        $mergeUpdates['phone'] = $tokenPhone;
+                        $mergeUpdates['is_phone_verified'] = true;
+                        $mergeUpdates['phone_verified_at'] = now();
+                    }
+                    $existingUser->update($mergeUpdates);
                     $user = $existingUser;
-                    \Log::info("Account linked: Email {$decoded->email} now linked to Firebase UID {$decoded->sub}");
+                    \Log::info("Account linked: Email {$tokenEmail} now linked to Firebase UID {$decoded->sub}");
                 } else {
                     // Create new user
                     $freePlan = User::getPlanDefinition('free');
-                    $normalizedEmail = $decoded->email ? strtolower(trim($decoded->email)) : null;
+                    $normalizedEmail = $tokenEmail;
                     $userName = $decoded->name ?? null;
                     
                     \Log::info("Creating new user from Firebase token", [
@@ -70,6 +91,9 @@ class FirebaseAuthMiddleware
                         'firebase_uid' => $decoded->sub,
                         'email' => $normalizedEmail,
                         'name' => $userName,
+                        'phone' => $tokenPhone,
+                        'is_phone_verified' => $tokenPhone ? true : false,
+                        'phone_verified_at' => $tokenPhone ? now() : null,
                         'subscription_plan' => 'free',
                         'subscription_cycle' => null,
                         'book_limit' => $freePlan['book_limit'],

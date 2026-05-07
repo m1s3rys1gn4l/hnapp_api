@@ -141,8 +141,8 @@ class BookController extends Controller
             'phone' => 'nullable|string',
         ]);
 
-        $email = strtolower(trim((string) ($validated['email'] ?? '')));
-        $phone = trim((string) ($validated['phone'] ?? ''));
+        $email = $this->normalizeEmail((string) ($validated['email'] ?? ''));
+        $phone = $this->normalizePhoneInput((string) ($validated['phone'] ?? ''));
 
         if ($email === '' && $phone === '') {
             return response()->json([
@@ -163,6 +163,7 @@ class BookController extends Controller
         if (!$shareWithUser) {
             return response()->json([
                 'message' => 'User not found. Please verify the email/phone address.',
+                'hint' => 'Ask the recipient to open the app and complete one online sync/login first, then try sharing again.',
                 'searched_for' => $email !== '' ? $email : $phone,
             ], 404);
         }
@@ -269,7 +270,7 @@ class BookController extends Controller
 
     private function phoneCandidates(string $rawPhone): array
     {
-        $digits = $this->digitsOnly($rawPhone);
+        $digits = $this->digitsOnly($this->normalizePhoneInput($rawPhone));
         if ($digits === '') {
             return [];
         }
@@ -295,6 +296,28 @@ class BookController extends Controller
     private function digitsOnly(string $value): string
     {
         return preg_replace('/\D+/', '', $value) ?? '';
+    }
+
+    private function normalizeEmail(string $value): string
+    {
+        $normalized = trim($value);
+        // Remove accidental spaces copied with email addresses.
+        $normalized = preg_replace('/\s+/u', '', $normalized) ?? $normalized;
+
+        return strtolower($normalized);
+    }
+
+    private function normalizePhoneInput(string $value): string
+    {
+        $trimmed = trim($value);
+
+        // Convert common localized numerals (Bangla/Arabic) into ASCII digits.
+        return strtr($trimmed, [
+            '০' => '0', '১' => '1', '২' => '2', '৩' => '3', '৪' => '4',
+            '৫' => '5', '৬' => '6', '৭' => '7', '৮' => '8', '৯' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
     }
 
     /**
