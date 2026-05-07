@@ -141,7 +141,10 @@ class BookController extends Controller
             'phone' => 'nullable|string',
         ]);
 
-        if (!$validated['email'] && !$validated['phone']) {
+        $email = strtolower(trim((string) ($validated['email'] ?? '')));
+        $phone = trim((string) ($validated['phone'] ?? ''));
+
+        if ($email === '' && $phone === '') {
             return response()->json([
                 'message' => 'Either email or phone must be provided',
             ], 422);
@@ -149,18 +152,18 @@ class BookController extends Controller
 
         // Find user by email or phone (case-insensitive)
         $shareWithUser = null;
-        if ($validated['email']) {
-            $email = strtolower(trim($validated['email']));
+        if ($email !== '') {
             $shareWithUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
-        } elseif ($validated['phone']) {
-            $phone = trim($validated['phone']);
-            $shareWithUser = User::where('phone', $phone)->first();
+        }
+
+        if (!$shareWithUser && $phone !== '') {
+            $shareWithUser = $this->findUserByPhoneFlexible($phone);
         }
 
         if (!$shareWithUser) {
             return response()->json([
                 'message' => 'User not found. Please verify the email/phone address.',
-                'searched_for' => $validated['email'] ?? $validated['phone'],
+                'searched_for' => $email !== '' ? $email : $phone,
             ], 404);
         }
 
@@ -216,6 +219,9 @@ class BookController extends Controller
             ->where('status', 'active')
             ->with('book', 'sharedByUser')
             ->get()
+            ->filter(function ($share) {
+                return $share->book !== null && $share->sharedByUser !== null;
+            })
             ->map(function ($share) {
                 $book = $share->book;
                 return [
@@ -237,6 +243,58 @@ class BookController extends Controller
             });
 
         return response()->json($sharedBooks);
+    }
+
+    private function findUserByPhoneFlexible(string $inputPhone): ?User
+    {
+        $candidates = $this->phoneCandidates($inputPhone);
+        if (empty($candidates)) {
+            return null;
+        }
+
+        $users = User::query()
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->get();
+
+        foreach ($users as $candidateUser) {
+            $stored = $this->digitsOnly((string) $candidateUser->phone);
+            if ($stored !== '' && in_array($stored, $candidates, true)) {
+                return $candidateUser;
+            }
+        }
+
+        return null;
+    }
+
+    private function phoneCandidates(string $rawPhone): array
+    {
+        $digits = $this->digitsOnly($rawPhone);
+        if ($digits === '') {
+            return [];
+        }
+
+        $candidates = [$digits];
+
+        if (str_starts_with($digits, '880') && strlen($digits) > 3) {
+            $candidates[] = '0' . substr($digits, 3);
+        }
+
+        if (str_starts_with($digits, '0') && strlen($digits) > 1) {
+            $candidates[] = '880' . substr($digits, 1);
+        }
+
+        if (str_starts_with($digits, '1') && strlen($digits) >= 10) {
+            $candidates[] = '0' . $digits;
+            $candidates[] = '880' . $digits;
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
+    }
+
+    private function digitsOnly(string $value): string
+    {
+        return preg_replace('/\D+/', '', $value) ?? '';
     }
 
     /**
