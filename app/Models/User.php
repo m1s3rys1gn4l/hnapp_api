@@ -39,8 +39,8 @@ class User extends Authenticatable
     public const PLAN_DEFINITIONS = [
         'free' => [
             'label' => 'Free',
-            'book_limit' => 20,
-            'customer_limit' => 100,
+            'book_limit' => 50,
+            'customer_limit' => 200,
             'show_ads' => true,
             'yearly_price_bdt' => 0,
             'monthly_price_bdt' => 0,
@@ -179,6 +179,10 @@ class User extends Authenticatable
 
     public function effectiveBookLimit(): ?int
     {
+        if ($this->normalizedPlanKey() === 'free') {
+            return self::PLAN_DEFINITIONS['free']['book_limit'];
+        }
+
         if ($this->book_limit !== null) {
             return (int) $this->book_limit;
         }
@@ -189,6 +193,10 @@ class User extends Authenticatable
 
     public function effectiveCustomerLimit(): ?int
     {
+        if ($this->normalizedPlanKey() === 'free') {
+            return self::PLAN_DEFINITIONS['free']['customer_limit'];
+        }
+
         if ($this->customer_limit !== null) {
             return (int) $this->customer_limit;
         }
@@ -199,6 +207,10 @@ class User extends Authenticatable
 
     public function effectiveShowAds(): bool
     {
+        if ($this->normalizedPlanKey() === 'free') {
+            return (bool) self::PLAN_DEFINITIONS['free']['show_ads'];
+        }
+
         if ($this->show_ads !== null) {
             return (bool) $this->show_ads;
         }
