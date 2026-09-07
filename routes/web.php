@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminPlanController;
+use App\Http\Controllers\Admin\AdminPaymentRequestController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,7 +22,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware('admin.auth')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
-        Route::get('/', fn () => redirect()->route('admin.users.index'));
+        Route::get('/', fn () => redirect()->route('admin.dashboard'));
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
+        Route::get('/plans/create', [AdminPlanController::class, 'create'])->name('plans.create');
+        Route::post('/plans', [AdminPlanController::class, 'store'])->name('plans.store');
+        Route::get('/plans/{plan}/edit', [AdminPlanController::class, 'edit'])->name('plans.edit');
+        Route::put('/plans/{plan}', [AdminPlanController::class, 'update'])->name('plans.update');
+        Route::delete('/plans/{plan}', [AdminPlanController::class, 'destroy'])->name('plans.destroy');
+
+        Route::get('/payment-requests', [AdminPaymentRequestController::class, 'index'])->name('payment-requests.index');
+        Route::post('/payment-requests/{paymentRequest}/approve', [AdminPaymentRequestController::class, 'approve'])->name('payment-requests.approve');
+        Route::post('/payment-requests/{paymentRequest}/reject', [AdminPaymentRequestController::class, 'reject'])->name('payment-requests.reject');
+
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');

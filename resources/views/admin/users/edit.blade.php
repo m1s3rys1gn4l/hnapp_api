@@ -1,120 +1,109 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit User</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f8fafc; margin: 0; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
-        h1 { margin-top: 0; }
-        label { display: block; margin: 12px 0 6px; font-size: 14px; }
-        input[type="text"], input[type="email"], input[type="password"] { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
-        .row { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
-        .actions { display: flex; gap: 10px; margin-top: 18px; }
-        button, .btn { padding: 8px 12px; border: 0; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-neutral { background: #e2e8f0; color: #111827; }
-        .errors { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="card">
-        <h1>Edit User #{{ $user->id }}</h1>
+@extends('admin.layouts.app')
 
-        @if ($errors->any())
-            <div class="errors">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+@section('title', 'Edit User')
+@section('page-title', 'Edit User #' . $user->id)
 
-        <form method="POST" action="{{ route('admin.users.update', $user) }}">
+@section('content')
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-2xl">
+        <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-4">
             @csrf
             @method('PUT')
 
-            <label for="name">Name</label>
-            <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}">
+            <div>
+                <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
-            <label for="email">Email</label>
-            <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required>
+            <div>
+                <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
-            <label for="phone">Phone</label>
-            <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}">
+            <div>
+                <label for="phone" class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                <input id="phone" type="text" name="phone" value="{{ old('phone', $user->phone) }}"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
-            <label for="firebase_uid">Firebase UID</label>
-            <input id="firebase_uid" type="text" name="firebase_uid" value="{{ old('firebase_uid', $user->firebase_uid) }}">
+            <div>
+                <label for="firebase_uid" class="block text-sm font-medium text-slate-700 mb-1">Firebase UID</label>
+                <input id="firebase_uid" type="text" name="firebase_uid" value="{{ old('firebase_uid', $user->firebase_uid) }}"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
+            <hr class="border-slate-200 my-2">
 
-            <h3 style="margin-bottom: 8px;">Package Assignment</h3>
-            <p style="color: #64748b; font-size: 13px; margin-top: 0;">Set package manually from admin panel</p>
+            <div>
+                <h3 class="font-semibold text-slate-900 mb-1">Package Assignment</h3>
+                <p class="text-xs text-slate-500 mb-3">Set package manually from admin panel. Manage plan pricing/limits under <a href="{{ route('admin.plans.index') }}" class="text-blue-600 hover:underline">Plans</a>.</p>
 
-            <label for="subscription_plan">Package</label>
-            <select id="subscription_plan" name="subscription_plan" style="width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                @foreach ($planDefinitions as $planKey => $plan)
-                    <option value="{{ $planKey }}" {{ old('subscription_plan', $user->subscription_plan ?? 'free') === $planKey ? 'selected' : '' }}>
-                        {{ $plan['label'] }}
-                    </option>
-                @endforeach
-            </select>
+                <label for="subscription_plan" class="block text-sm font-medium text-slate-700 mb-1">Package</label>
+                <select id="subscription_plan" name="subscription_plan"
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @foreach ($planDefinitions as $planKey => $plan)
+                        <option value="{{ $planKey }}" {{ old('subscription_plan', $user->subscription_plan ?? 'free') === $planKey ? 'selected' : '' }}>
+                            {{ $plan['label'] }}
+                        </option>
+                    @endforeach
+                </select>
 
-            <label for="subscription_cycle">Billing Cycle (for paid plans)</label>
-            <select id="subscription_cycle" name="subscription_cycle" style="width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                <option value="monthly" {{ old('subscription_cycle', $user->subscription_cycle) === 'monthly' ? 'selected' : '' }}>Monthly</option>
-                <option value="yearly" {{ old('subscription_cycle', $user->subscription_cycle ?? 'yearly') === 'yearly' ? 'selected' : '' }}>Yearly</option>
-            </select>
+                <label for="subscription_cycle" class="block text-sm font-medium text-slate-700 mb-1 mt-3">Billing Cycle (for paid plans)</label>
+                <select id="subscription_cycle" name="subscription_cycle"
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="monthly" {{ old('subscription_cycle', $user->subscription_cycle) === 'monthly' ? 'selected' : '' }}>Monthly</option>
+                    <option value="yearly" {{ old('subscription_cycle', $user->subscription_cycle ?? 'yearly') === 'yearly' ? 'selected' : '' }}>Yearly</option>
+                </select>
 
-                <label for="validity_days">Validity Period (Days)</label>
-                <input id="validity_days" type="number" name="validity_days" min="1" max="3650" value="{{ old('validity_days', '') }}" placeholder="Leave blank to use default (30 days for monthly, 365 for yearly)" style="width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                <p style="color: #64748b; font-size: 12px; margin-top: 4px;">
-                    Set custom validity period in days. Package will automatically expire and revert to Free plan after this period.
-                </p>
+                <label for="validity_days" class="block text-sm font-medium text-slate-700 mb-1 mt-3">Validity Period (Days)</label>
+                <input id="validity_days" type="number" name="validity_days" min="1" max="3650" value="{{ old('validity_days', '') }}"
+                       placeholder="Leave blank to use default (30 days for monthly, 365 for yearly)"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-slate-400 mt-1">Package automatically expires and reverts to Free after this period.</p>
 
-            <p style="color: #64748b; font-size: 12px; margin-top: 8px;">
-                    <strong>Current Status:</strong><br>
+                <div class="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 mt-3">
+                    <strong>Current status:</strong>
                     Books {{ $user->book_limit ?? 'Unlimited' }}, Customers {{ $user->customer_limit ?? 'Unlimited' }}, Ads {{ $user->show_ads ? 'On' : 'Off' }}<br>
                     @if ($user->subscription_expires_at)
-                        <span style="color: #d97706;">Expires: {{ $user->subscription_expires_at->format('Y-m-d H:i') }} ({{ $user->subscription_expires_at->diffForHumans() }})</span>
+                        <span class="text-amber-600">Expires: {{ $user->subscription_expires_at->format('Y-m-d H:i') }} ({{ $user->subscription_expires_at->diffForHumans() }})</span>
                     @else
                         No expiry (Free or lifetime plan)
                     @endif
-            </p>
-
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
-
-            <h3 style="margin-bottom: 8px;">Change Password (Optional)</h3>
-            <p style="color: #64748b; font-size: 13px; margin-top: 0;">Leave blank to keep current password</p>
-
-            <label for="password">New Password</label>
-            <input id="password" type="password" name="password" placeholder="Leave blank to keep current">
-
-            <label for="password_confirmation">Confirm New Password</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" placeholder="Leave blank to keep current">
-
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
-
-            <div class="row">
-                <input id="is_phone_verified" type="checkbox" name="is_phone_verified" value="1" {{ old('is_phone_verified', $user->is_phone_verified) ? 'checked' : '' }}>
-                <label for="is_phone_verified" style="margin:0;">Phone verified</label>
+                </div>
             </div>
 
-            <div class="row">
-                <input id="is_active" type="checkbox" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
-                <label for="is_active" style="margin:0;">User active</label>
+            <hr class="border-slate-200 my-2">
+
+            <div>
+                <h3 class="font-semibold text-slate-900 mb-1">Change Password (Optional)</h3>
+                <p class="text-xs text-slate-500 mb-3">Leave blank to keep current password</p>
+
+                <label for="password" class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                <input id="password" type="password" name="password" placeholder="Leave blank to keep current"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <label for="password_confirmation" class="block text-sm font-medium text-slate-700 mb-1 mt-3">Confirm New Password</label>
+                <input id="password_confirmation" type="password" name="password_confirmation" placeholder="Leave blank to keep current"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <div class="actions">
-                <button class="btn btn-primary" type="submit">Save Changes</button>
-                <a class="btn btn-neutral" href="{{ route('admin.users.index') }}">Back</a>
+            <hr class="border-slate-200 my-2">
+
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" name="is_phone_verified" value="1" {{ old('is_phone_verified', $user->is_phone_verified) ? 'checked' : '' }} class="rounded border-slate-300 text-blue-600">
+                Phone verified
+            </label>
+
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }} class="rounded border-slate-300 text-blue-600">
+                User active
+            </label>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg px-4 py-2">Save Changes</button>
+                <a href="{{ route('admin.users.index') }}" class="text-sm text-slate-600 hover:underline">Back</a>
             </div>
         </form>
     </div>
-</div>
-</body>
-</html>
+@endsection

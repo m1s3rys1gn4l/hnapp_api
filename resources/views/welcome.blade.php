@@ -184,7 +184,7 @@
 <body>
 <div class="container">
     @php
-        $plans = \App\Models\User::PLAN_DEFINITIONS;
+        $plans = \App\Models\User::planDefinitions();
         $supportPhone = '01842566315';
         $supportWhatsApp = '+8801842566315';
         $supportEmail = 'support@hisabnikash.app';

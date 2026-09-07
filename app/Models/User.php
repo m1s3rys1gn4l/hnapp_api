@@ -36,24 +36,55 @@ class User extends Authenticatable
         'subscription_expires_at',
     ];
 
-    public const PLAN_DEFINITIONS = [
-        'free' => [
-            'label' => 'Free',
-            'book_limit' => 50,
-            'customer_limit' => 200,
-            'show_ads' => true,
-            'yearly_price_bdt' => 0,
-            'monthly_price_bdt' => 0,
-        ],
-        'premium' => [
-            'label' => 'Premium',
-            'book_limit' => null,
-            'customer_limit' => null,
-            'show_ads' => false,
-            'yearly_price_bdt' => 500,
-            'monthly_price_bdt' => 42,
-        ],
+    /**
+     * Fallback used only if the `plans` table is empty or unreachable
+     * (e.g. mid-migration). Plans are otherwise managed from the admin panel.
+     */
+    private const FALLBACK_PLAN_DEFINITION = [
+        'label' => 'Free',
+        'book_limit' => 50,
+        'customer_limit' => 200,
+        'show_ads' => true,
+        'yearly_price_bdt' => 0,
+        'monthly_price_bdt' => 0,
     ];
+
+    public function paymentRequests()
+    {
+        return $this->hasMany(PaymentRequest::class);
+    }
+
+    /**
+     * All plan definitions, keyed by plan key, in the shape the rest of the
+     * app expects (label, book_limit, customer_limit, show_ads, prices).
+     */
+    public static function planDefinitions(): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember('plan_definitions', 60, function () {
+            $plans = Plan::query()->orderBy('sort_order')->get();
+
+            if ($plans->isEmpty()) {
+                return ['free' => self::FALLBACK_PLAN_DEFINITION];
+            }
+
+            return $plans->mapWithKeys(fn (Plan $plan) => [
+                $plan->key => [
+                    'label' => $plan->label,
+                    'book_limit' => $plan->book_limit,
+                    'customer_limit' => $plan->customer_limit,
+                    'show_ads' => $plan->show_ads,
+                    'yearly_price_bdt' => $plan->yearly_price_bdt,
+                    'monthly_price_bdt' => $plan->monthly_price_bdt,
+                    'is_active' => $plan->is_active,
+                ],
+            ])->all();
+        });
+    }
+
+    public static function forgetPlanDefinitionsCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('plan_definitions');
+    }
 
     /**
      * The attributes that should be cast.
@@ -134,13 +165,15 @@ class User extends Authenticatable
 
     public static function getPlanDefinition(string $plan): array
     {
-        return self::PLAN_DEFINITIONS[$plan] ?? self::PLAN_DEFINITIONS['free'];
+        $definitions = self::planDefinitions();
+
+        return $definitions[$plan] ?? $definitions['free'] ?? self::FALLBACK_PLAN_DEFINITION;
     }
 
     public function normalizedPlanKey(): string
     {
         $plan = $this->subscription_plan ?? 'free';
-        return array_key_exists($plan, self::PLAN_DEFINITIONS) ? $plan : 'free';
+        return array_key_exists($plan, self::planDefinitions()) ? $plan : 'free';
     }
 
     public function applyPlan(string $plan, ?string $cycle = null, bool $resetDates = true): void

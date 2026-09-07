@@ -97,30 +97,22 @@ class UserController extends Controller
      */
     public function packageCatalog()
     {
-        $definitions = \App\Models\User::PLAN_DEFINITIONS;
+        $plans = \App\Models\Plan::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
 
         return response()->json([
             'payment_method' => 'bKash / Nagad / Rocket (Manual confirmation by admin)',
-            'packages' => [
-                [
-                    'key' => 'free',
-                    'name' => $definitions['free']['label'],
-                    'book_limit' => $definitions['free']['book_limit'],
-                    'customer_limit' => $definitions['free']['customer_limit'],
-                    'show_ads' => $definitions['free']['show_ads'],
-                    'yearly_price_bdt' => $definitions['free']['yearly_price_bdt'],
-                    'monthly_price_bdt' => $definitions['free']['monthly_price_bdt'],
-                ],
-                [
-                    'key' => 'premium',
-                    'name' => $definitions['premium']['label'],
-                    'book_limit' => $definitions['premium']['book_limit'],
-                    'customer_limit' => $definitions['premium']['customer_limit'],
-                    'show_ads' => $definitions['premium']['show_ads'],
-                    'yearly_price_bdt' => $definitions['premium']['yearly_price_bdt'],
-                    'monthly_price_bdt' => $definitions['premium']['monthly_price_bdt'],
-                ],
-            ],
+            'packages' => $plans->map(fn ($plan) => [
+                'key' => $plan->key,
+                'name' => $plan->label,
+                'book_limit' => $plan->book_limit,
+                'customer_limit' => $plan->customer_limit,
+                'show_ads' => $plan->show_ads,
+                'yearly_price_bdt' => $plan->yearly_price_bdt,
+                'monthly_price_bdt' => $plan->monthly_price_bdt,
+            ])->values(),
         ]);
     }
 

@@ -92,7 +92,7 @@ class AdminUserController extends Controller
     {
         return view('admin.users.edit', [
             'user' => $user,
-            'planDefinitions' => User::PLAN_DEFINITIONS,
+            'planDefinitions' => User::planDefinitions(),
         ]);
     }
 
@@ -106,7 +106,7 @@ class AdminUserController extends Controller
             'is_phone_verified' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
-            'subscription_plan' => ['required', Rule::in(array_keys(User::PLAN_DEFINITIONS))],
+            'subscription_plan' => ['required', Rule::in(array_keys(User::planDefinitions()))],
             'subscription_cycle' => ['nullable', Rule::in(['monthly', 'yearly'])],
                 'validity_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);

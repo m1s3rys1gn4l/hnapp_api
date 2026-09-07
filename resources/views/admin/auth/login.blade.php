@@ -3,45 +3,45 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Login</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; }
-        .wrap { min-height: 100vh; display: grid; place-items: center; }
-        .card { width: 100%; max-width: 420px; background: #fff; border: 1px solid #e3e8ef; border-radius: 12px; padding: 24px; }
-        h1 { margin: 0 0 8px; font-size: 22px; }
-        p { margin: 0 0 20px; color: #6b7280; font-size: 14px; }
-        label { display: block; margin: 10px 0 6px; font-size: 14px; }
-        input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
-        button { margin-top: 16px; width: 100%; padding: 10px 12px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; cursor: pointer; }
-        .error { color: #b91c1c; font-size: 13px; margin-top: 8px; }
-        .hint { margin-top: 16px; font-size: 12px; color: #6b7280; }
-    </style>
+    <title>Admin Login · Hisab Nikash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<div class="wrap">
-    <div class="card">
-        <h1>Admin Dashboard</h1>
-        <p>Sign in to manage users.</p>
+<body class="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <div class="text-center mb-6">
+            <div class="text-3xl mb-2">📒</div>
+            <h1 class="text-xl font-bold text-slate-900">Hisab Nikash Admin</h1>
+            <p class="text-sm text-slate-500 mt-1">Sign in to manage the platform</p>
+        </div>
 
-        <form method="POST" action="{{ route('admin.login.submit') }}">
+        <form method="POST" action="{{ route('admin.login.submit') }}" class="space-y-4">
             @csrf
-            <label for="email">Email</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required>
 
-            <label for="password">Password</label>
-            <input id="password" type="password" name="password" required>
+            <div>
+                <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" required
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                <input id="password" type="password" name="password" required
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
 
             @if ($errors->any())
-                <div class="error">{{ $errors->first() }}</div>
+                <div class="text-sm text-red-600">{{ $errors->first() }}</div>
             @endif
 
-            <button type="submit">Sign In</button>
+            <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-2.5 text-sm transition">
+                Sign In
+            </button>
         </form>
 
-        <div class="hint">
-            Configure credentials in <strong>.env</strong> using <strong>ADMIN_EMAIL</strong> and <strong>ADMIN_PASSWORD</strong>.
-        </div>
+        <p class="text-xs text-slate-400 text-center mt-6">
+            Configure fallback credentials via <code class="bg-slate-100 px-1 rounded">ADMIN_EMAIL</code> / <code class="bg-slate-100 px-1 rounded">ADMIN_PASSWORD</code> in .env
+        </p>
     </div>
-</div>
 </body>
 </html>

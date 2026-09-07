@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\DiagnosticController;
 
 // Public health check
@@ -30,7 +31,11 @@ Route::middleware('firebase.auth')->group(function () {
     Route::get('/user/stats', [UserController::class, 'stats']);
     Route::get('/user/linked-providers', [UserController::class, 'linkedProviders']);
     Route::delete('/user/account', [UserController::class, 'deleteAccount']);
-    
+
+    // Subscription payment requests
+    Route::post('/subscription/payment-requests', [SubscriptionController::class, 'store']);
+    Route::get('/subscription/payment-requests', [SubscriptionController::class, 'index']);
+
     // Sync endpoints
     Route::post('/sync/pull', [SyncController::class, 'pull']);
     Route::post('/sync/push', [SyncController::class, 'push']);
