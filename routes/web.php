@@ -32,5 +32,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/settings', [AdminSettingsController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
         Route::put('/settings/email', [AdminSettingsController::class, 'updateEmailSettings'])->name('settings.update-email');
+        Route::put('/settings/sms', [AdminSettingsController::class, 'updateSmsSettings'])->name('settings.update-sms');
+        Route::post('/settings/sms/test', [AdminSettingsController::class, 'testSms'])->name('settings.test-sms');
     });
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminCredential;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -22,6 +23,10 @@ class AdminSettingsController extends Controller
             'mailEncryption' => env('MAIL_ENCRYPTION', 'tls'),
             'mailFromAddress' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
             'mailFromName' => env('MAIL_FROM_NAME', config('app.name')),
+            'smsApiKey' => env('SMS_API_KEY', ''),
+            'smsSecretKey' => env('SMS_SECRET_KEY', ''),
+            'smsSenderId' => env('SMS_SENDER_ID', ''),
+            'smsBaseUrl' => env('SMS_BASE_URL', 'https://smpp.revesms.com:7790'),
         ]);
     }
 
@@ -115,6 +120,60 @@ class AdminSettingsController extends Controller
         return redirect()
             ->route('admin.settings.edit')
             ->with('status', 'Email provider settings updated successfully.');
+    }
+
+    public function updateSmsSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'sms_api_key' => ['required', 'string', 'max:255'],
+            'sms_secret_key' => ['required', 'string', 'max:255'],
+            'sms_sender_id' => ['required', 'string', 'max:32'],
+            'sms_base_url' => ['required', 'url', 'max:255'],
+        ]);
+
+        try {
+            $this->updateEnv([
+                'SMS_API_KEY' => $validated['sms_api_key'],
+                'SMS_SECRET_KEY' => $validated['sms_secret_key'],
+                'SMS_SENDER_ID' => $validated['sms_sender_id'],
+                'SMS_BASE_URL' => $validated['sms_base_url'],
+            ]);
+
+            // Make the new values available immediately in this request cycle.
+            config([
+                'services.sms.api_key' => $validated['sms_api_key'],
+                'services.sms.secret_key' => $validated['sms_secret_key'],
+                'services.sms.sender_id' => $validated['sms_sender_id'],
+                'services.sms.base_url' => $validated['sms_base_url'],
+            ]);
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'sms_settings' => 'Failed to update SMS gateway settings: ' . $e->getMessage(),
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.settings.edit')
+            ->with('status', 'SMS gateway settings updated successfully.');
+    }
+
+    public function testSms(Request $request)
+    {
+        $validated = $request->validate([
+            'test_phone' => ['required', 'string', 'max:20'],
+        ]);
+
+        $result = SmsService::send($validated['test_phone'], 'This is a test message from Hisab Nikash admin panel.');
+
+        if (!$result['success']) {
+            return back()->withErrors([
+                'sms_test' => 'Test SMS failed: ' . $result['message'],
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.settings.edit')
+            ->with('status', 'Test SMS sent successfully to ' . $validated['test_phone'] . '.');
     }
 
     private function updateEnv(array $data): void

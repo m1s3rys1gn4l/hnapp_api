@@ -66,6 +66,41 @@
                 </div>
             </form>
         </div>
+
+        <div class="card">
+            <h2>📱 SMS Gateway (REVE SMS)</h2>
+            <form method="POST" action="{{ route('admin.settings.update-sms') }}">
+                @csrf
+                @method('PUT')
+
+                <label for="sms_api_key">API Key</label>
+                <input id="sms_api_key" type="text" name="sms_api_key" value="{{ old('sms_api_key', $smsApiKey) }}" required>
+
+                <label for="sms_secret_key">Secret Key</label>
+                <input id="sms_secret_key" type="text" name="sms_secret_key" value="{{ old('sms_secret_key', $smsSecretKey) }}" required>
+
+                <label for="sms_sender_id">Sender ID (Caller ID)</label>
+                <input id="sms_sender_id" type="text" name="sms_sender_id" value="{{ old('sms_sender_id', $smsSenderId) }}" required>
+                <div class="help-text">The approved sender/mask name shown to recipients.</div>
+
+                <label for="sms_base_url">Gateway Base URL</label>
+                <input id="sms_base_url" type="url" name="sms_base_url" value="{{ old('sms_base_url', $smsBaseUrl) }}" required>
+                <div class="help-text">Default: https://smpp.revesms.com:7790</div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" type="submit">Save SMS Settings</button>
+                </div>
+            </form>
+
+            <form method="POST" action="{{ route('admin.settings.test-sms') }}" style="margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+                @csrf
+                <label for="test_phone">Send a test SMS</label>
+                <input id="test_phone" type="text" name="test_phone" placeholder="e.g. 8801XXXXXXXXX" required>
+                <div class="actions">
+                    <button class="btn btn-neutral" type="submit">Send Test SMS</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 </body>

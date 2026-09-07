@@ -40,9 +40,12 @@ return [
         'api_key' => env('FIREBASE_API_KEY'),
     ],
 
-    'otp' => [
-        'api_key' => env('OTP_API_KEY'), // GreenWeb token
-        'provider' => env('OTP_PROVIDER', 'greenweb'),
+    'sms' => [
+        // REVE SMS (smpp.revesms.com) gateway credentials.
+        'api_key' => env('SMS_API_KEY'),
+        'secret_key' => env('SMS_SECRET_KEY'),
+        'sender_id' => env('SMS_SENDER_ID'),
+        'base_url' => env('SMS_BASE_URL', 'https://smpp.revesms.com:7790'),
     ],
 
 ];

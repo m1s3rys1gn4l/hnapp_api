@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use App\Services\SmsService;
 
 class OtpService
 {
@@ -105,56 +106,19 @@ class OtpService
     }
 
     /**
-     * Send SMS with OTP via GreenWeb API
+     * Send SMS with OTP via the configured SMS gateway (REVE SMS)
      */
     private static function sendSms($phoneNumber, $otp)
     {
-        try {
-            $token = config('services.otp.api_key');
-            
-            if (!$token) {
-                \Log::error("GreenWeb API token not configured");
-                // Still log the OTP if API key is missing
-                \Log::info("OTP for {$phoneNumber}: {$otp}");
-                return false;
-            }
+        $message = "Your OTP Code: {$otp}\nValid for 10 minutes. #{$otp}";
 
-            // Format message
-            $message = "Your OTP Code: {$otp}\nValid for 10 minutes. #{$otp}";
+        $result = SmsService::send($phoneNumber, $message);
 
-            // GreenWeb API endpoint
-            $url = "http://api.greenweb.com.bd/api.php";
-
-            // Send via GreenWeb
-            $response = \Http::asForm()->post($url, [
-                'to' => $phoneNumber,
-                'message' => $message,
-                'token' => $token,
-            ]);
-
-            $result = $response->body();
-            
-            // GreenWeb returns "Ok" on success
-            if (str_starts_with($result, 'Ok')) {
-                \Log::info("OTP sent successfully to {$phoneNumber} via GreenWeb");
-                return true;
-            }
-
-            \Log::error("GreenWeb API failed: " . $result);
-            // Log OTP on failure for debugging
-            if (config('app.debug')) {
-                \Log::info("Failed OTP was: {$otp}");
-            }
-            return false;
-
-        } catch (\Exception $e) {
-            \Log::error("Failed to send OTP via GreenWeb: {$e->getMessage()}");
-            // Log OTP on exception for debugging
-            if (config('app.debug')) {
-                \Log::info("Exception - OTP for {$phoneNumber}: {$otp}");
-            }
-            return false;
+        if (!$result['success'] && config('app.debug')) {
+            \Log::info("Failed/undelivered OTP was: {$otp}");
         }
+
+        return $result['success'];
     }
 
     /**
