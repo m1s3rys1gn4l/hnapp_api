@@ -339,8 +339,11 @@ class BookController extends Controller
             ], 403);
         }
 
-        // Get transactions from the book owner (original creator)
+        // Get transactions from the book owner (original creator).
+        // The recipient's device never has the owner's client list, so the
+        // client's name/phone must be inlined here rather than just an id.
         $transactions = \App\Models\Transaction::where('book_id', $bookId)
+            ->with('client')
             ->get()
             ->map(function ($tx) {
                 return [
@@ -348,6 +351,8 @@ class BookController extends Controller
                     'user_id' => $tx->user_id,
                     'book_id' => $tx->book_id,
                     'client_id' => $tx->client_id,
+                    'client_name' => $tx->client?->name,
+                    'client_phone' => $tx->client?->phone,
                     'type' => $tx->type,
                     'amount' => (float) $tx->amount,
                     'note' => $tx->note,
