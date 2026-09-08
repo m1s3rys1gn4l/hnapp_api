@@ -153,7 +153,7 @@ class BookController extends Controller
         // Find user by email or phone (case-insensitive)
         $shareWithUser = null;
         if ($email !== '') {
-            $shareWithUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
+            $shareWithUser = User::whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
         }
 
         if (!$shareWithUser && $phone !== '') {

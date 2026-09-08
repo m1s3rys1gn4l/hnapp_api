@@ -30,7 +30,7 @@ class DiagnosticController extends Controller
 
         if ($validated['email']) {
             $email = strtolower(trim($validated['email']));
-            $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
+            $user = User::whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
             $searchType = 'email';
         } elseif ($validated['phone']) {
             $phone = trim($validated['phone']);

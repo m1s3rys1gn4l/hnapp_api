@@ -111,6 +111,7 @@ class AdminUserController extends Controller
                 'validity_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);
 
+        $validated['email'] = strtolower(trim($validated['email']));
         $validated['is_phone_verified'] = $request->boolean('is_phone_verified');
         $validated['phone_verified_at'] = $validated['is_phone_verified'] ? now() : null;
         $validated['is_active'] = $request->boolean('is_active', true);

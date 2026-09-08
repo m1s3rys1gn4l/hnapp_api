@@ -57,7 +57,7 @@ class FirebaseAuthMiddleware
                 // User doesn't exist with this firebase_uid
                 // Check if user with same email already exists
                 $existingUser = $tokenEmail
-                    ? User::whereRaw('LOWER(email) = ?', [$tokenEmail])->first()
+                    ? User::whereRaw('LOWER(TRIM(email)) = ?', [$tokenEmail])->first()
                     : null;
                 
                 if ($existingUser) {
