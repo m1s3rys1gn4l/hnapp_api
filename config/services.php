@@ -47,6 +47,13 @@ return [
         'secret_key' => env('SMS_SECRET_KEY'),
         'sender_id' => env('SMS_SENDER_ID'),
         'base_url' => env('SMS_BASE_URL', 'https://smpp.revesms.com:7790'),
+
+        // Demo login for app-store reviewers (Play Console, App Store review,
+        // etc). This phone number always resolves to a fixed, non-expiring
+        // OTP and never triggers a real SMS - reviewers can't receive texts
+        // during automated review. Never expose these values client-side.
+        'demo_phone' => env('SMS_DEMO_PHONE'),
+        'demo_otp' => env('SMS_DEMO_OTP'),
     ],
 
 ];

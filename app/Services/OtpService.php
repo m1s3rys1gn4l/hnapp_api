@@ -31,8 +31,14 @@ class OtpService
             ];
         }
 
-        // Generate OTP
-        $otp = str_pad(random_int(0, 999999), self::OTP_LENGTH, '0', STR_PAD_LEFT);
+        $isDemoPhone = self::isDemoPhone($phone);
+
+        // Generate OTP - demo login (app store reviewers) always gets the
+        // same fixed code instead of a random one, and never triggers a
+        // real SMS since reviewers can't receive texts during review.
+        $otp = $isDemoPhone
+            ? config('services.sms.demo_otp')
+            : str_pad(random_int(0, 999999), self::OTP_LENGTH, '0', STR_PAD_LEFT);
 
         // Store OTP in cache with expiry
         $otpKey = "otp:{$phone}";
@@ -45,8 +51,9 @@ class OtpService
         // Set resend delay
         Cache::put($resendKey, now()->addSeconds(self::OTP_RESEND_DELAY), self::OTP_RESEND_DELAY);
 
-        // Send SMS (implement with Twilio/AWS SNS/Firebase)
-        self::sendSms($phone, $otp);
+        if (!$isDemoPhone) {
+            self::sendSms($phone, $otp);
+        }
 
         return [
             'success' => true,
@@ -119,6 +126,24 @@ class OtpService
         }
 
         return $result['success'];
+    }
+
+    /**
+     * Whether this (already-normalized) phone is the configured app-store
+     * review demo number. Both demo config values must be set - an
+     * unconfigured demo_otp would otherwise make every request match an
+     * empty string.
+     */
+    private static function isDemoPhone(string $normalizedPhone): bool
+    {
+        $demoPhone = config('services.sms.demo_phone');
+        $demoOtp = config('services.sms.demo_otp');
+
+        if (empty($demoPhone) || empty($demoOtp)) {
+            return false;
+        }
+
+        return $normalizedPhone === self::normalizePhone($demoPhone);
     }
 
     /**
