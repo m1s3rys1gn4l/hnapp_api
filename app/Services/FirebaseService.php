@@ -3,10 +3,43 @@
 namespace App\Services;
 
 use Firebase\JWT\JWT;
+use Google\Auth\Credentials\ServiceAccountCredentials;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class FirebaseService
 {
+    /**
+     * Get a short-lived OAuth2 access token for the service account, scoped
+     * for Identity Toolkit admin operations (e.g. updating a user's
+     * password by uid). Unlike the plain API key, this authorizes
+     * admin-level actions on arbitrary users. Cached for slightly less than
+     * its ~1 hour lifetime.
+     */
+    private function getAccessToken(): string
+    {
+        return Cache::remember('firebase_admin_access_token', 3000, function () {
+            $path = config('services.firebase.service_account_path');
+
+            if (!$path || !file_exists($path)) {
+                throw new \RuntimeException('Firebase service account file not found. Set FIREBASE_SERVICE_ACCOUNT_PATH or place it at storage/app/secrets/firebase-service-account.json.');
+            }
+
+            $credentials = new ServiceAccountCredentials(
+                'https://www.googleapis.com/auth/identitytoolkit',
+                $path
+            );
+
+            $token = $credentials->fetchAuthToken();
+
+            if (empty($token['access_token'])) {
+                throw new \RuntimeException('Failed to obtain a Firebase admin access token.');
+            }
+
+            return $token['access_token'];
+        });
+    }
+
     /**
      * Mint a Firebase custom auth token for the given UID, signed with the
      * project's service account private key (RS256). The client exchanges
@@ -128,20 +161,19 @@ class FirebaseService
     }
 
     /**
-     * Update Firebase user password.
+     * Update Firebase user password (admin operation - setting an
+     * arbitrary user's password isn't something a bare API key is
+     * authorized to do; it needs the service account's admin token).
      */
     public function updatePassword(string $uid, string $newPassword): void
     {
-        $apiKey = config('services.firebase.api_key');
-
-        if (empty($apiKey)) {
-            throw new \RuntimeException('Firebase API key is not configured. Set FIREBASE_API_KEY in .env.');
-        }
+        $accessToken = $this->getAccessToken();
 
         $response = Http::timeout(15)
             ->withOptions(['verify' => false])
+            ->withToken($accessToken)
             ->post(
-                "https://identitytoolkit.googleapis.com/v1/accounts:update?key={$apiKey}",
+                'https://identitytoolkit.googleapis.com/v1/accounts:update',
                 [
                     'localId' => $uid,
                     'password' => $newPassword,
