@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DiagnosticController;
 
 // Public health check
@@ -17,6 +18,13 @@ Route::get('/', function () {
 
 // Public diagnostic endpoints (for debugging)
 Route::post('/debug/find-user', [DiagnosticController::class, 'findUser']);
+
+// Public OTP login/signup (throttled by IP; OtpService also enforces a
+// per-phone resend cooldown independently).
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/auth/otp/request', [AuthController::class, 'requestOtp']);
+    Route::post('/auth/otp/verify', [AuthController::class, 'verifyOtp']);
+});
 
 // Protected routes (require Firebase auth)
 Route::middleware('firebase.auth')->group(function () {
@@ -31,6 +39,8 @@ Route::middleware('firebase.auth')->group(function () {
     Route::get('/user/stats', [UserController::class, 'stats']);
     Route::get('/user/linked-providers', [UserController::class, 'linkedProviders']);
     Route::delete('/user/account', [UserController::class, 'deleteAccount']);
+    Route::post('/user/phone/otp/request', [UserController::class, 'requestPhoneVerification']);
+    Route::post('/user/phone/otp/verify', [UserController::class, 'verifyPhoneVerification']);
 
     // Subscription payment requests
     Route::post('/subscription/payment-requests', [SubscriptionController::class, 'store']);

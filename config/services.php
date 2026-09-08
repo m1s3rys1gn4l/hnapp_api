@@ -38,6 +38,7 @@ return [
     'firebase' => [
         'project_id' => env('FIREBASE_PROJECT_ID'),
         'api_key' => env('FIREBASE_API_KEY'),
+        'service_account_path' => env('FIREBASE_SERVICE_ACCOUNT_PATH', storage_path('app/secrets/firebase-service-account.json')),
     ],
 
     'sms' => [

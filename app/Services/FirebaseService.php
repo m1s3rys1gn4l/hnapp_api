@@ -2,10 +2,56 @@
 
 namespace App\Services;
 
+use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Http;
 
 class FirebaseService
 {
+    /**
+     * Mint a Firebase custom auth token for the given UID, signed with the
+     * project's service account private key (RS256). The client exchanges
+     * this for an ID token via `signInWithCustomToken()`.
+     *
+     * If a Firebase user with this UID doesn't exist yet, Firebase creates
+     * it automatically on first sign-in with the custom token.
+     *
+     * @param array<string, mixed> $claims Optional custom claims to embed in the token.
+     */
+    public function createCustomToken(string $uid, array $claims = []): string
+    {
+        $path = config('services.firebase.service_account_path');
+
+        if (!$path || !file_exists($path)) {
+            throw new \RuntimeException('Firebase service account file not found. Set FIREBASE_SERVICE_ACCOUNT_PATH or place it at storage/app/secrets/firebase-service-account.json.');
+        }
+
+        $serviceAccount = json_decode(file_get_contents($path), true);
+
+        $clientEmail = $serviceAccount['client_email'] ?? null;
+        $privateKey = $serviceAccount['private_key'] ?? null;
+
+        if (!$clientEmail || !$privateKey) {
+            throw new \RuntimeException('Invalid Firebase service account file: missing client_email or private_key.');
+        }
+
+        $now = time();
+
+        $payload = [
+            'iss' => $clientEmail,
+            'sub' => $clientEmail,
+            'aud' => 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+            'iat' => $now,
+            'exp' => $now + 3600,
+            'uid' => $uid,
+        ];
+
+        if (!empty($claims)) {
+            $payload['claims'] = $claims;
+        }
+
+        return JWT::encode($payload, $privateKey, 'RS256');
+    }
+
     /**
      * Create a Firebase Authentication user with email/password.
      *

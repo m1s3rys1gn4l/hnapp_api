@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\FirebaseService;
+use App\Services\OtpService;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -22,6 +24,7 @@ class UserController extends Controller
             'email' => $user->email,
             'name' => $user->name,
             'phone' => $user->phone,
+            'is_phone_verified' => (bool) $user->is_phone_verified,
             'subscription' => [
                 'plan' => $normalizedPlan,
                 'cycle' => $normalizedPlan === 'free' ? null : $user->subscription_cycle,
@@ -129,6 +132,85 @@ class UserController extends Controller
             'total_transactions' => $user->transactions()->count(),
             'total_amount_in' => $user->transactions()->where('type', 'in')->sum('amount'),
             'total_amount_out' => $user->transactions()->where('type', 'out')->sum('amount'),
+        ]);
+    }
+
+    /**
+     * Send an OTP to verify/attach a phone number to the current account.
+     */
+    public function requestPhoneVerification(Request $request)
+    {
+        $validated = $request->validate([
+            'phone' => ['required', 'string', 'max:20'],
+        ]);
+
+        $normalizedPhone = OtpService::normalizePhone($validated['phone']);
+
+        $takenByOther = User::where('phone', $normalizedPhone)
+            ->where('is_phone_verified', true)
+            ->where('id', '!=', $request->auth_user->id)
+            ->exists();
+
+        if ($takenByOther) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This phone number is already verified on another account.',
+            ], 422);
+        }
+
+        $result = OtpService::sendOtp($validated['phone']);
+
+        return response()->json($result, $result['success'] ? 200 : 429);
+    }
+
+    /**
+     * Verify the OTP and attach the phone number to the current account.
+     */
+    public function verifyPhoneVerification(Request $request)
+    {
+        $validated = $request->validate([
+            'phone' => ['required', 'string', 'max:20'],
+            'otp' => ['required', 'string', 'max:10'],
+        ]);
+
+        $result = OtpService::verifyOtp($validated['phone'], $validated['otp']);
+
+        if (!$result['success']) {
+            return response()->json($result, 422);
+        }
+
+        $normalizedPhone = $result['phone'];
+
+        $takenByOther = User::where('phone', $normalizedPhone)
+            ->where('is_phone_verified', true)
+            ->where('id', '!=', $request->auth_user->id)
+            ->exists();
+
+        if ($takenByOther) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This phone number is already verified on another account.',
+            ], 422);
+        }
+
+        $user = $request->auth_user;
+
+        $linkedProviders = $user->linked_providers ?? [];
+        if (!in_array('phone', $linkedProviders, true)) {
+            $linkedProviders[] = 'phone';
+        }
+
+        $user->update([
+            'phone' => $normalizedPhone,
+            'is_phone_verified' => true,
+            'phone_verified_at' => now(),
+            'linked_providers' => $linkedProviders,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Phone number verified successfully',
+            'phone' => $user->phone,
         ]);
     }
 
