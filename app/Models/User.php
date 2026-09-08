@@ -213,7 +213,7 @@ class User extends Authenticatable
     public function effectiveBookLimit(): ?int
     {
         if ($this->normalizedPlanKey() === 'free') {
-            return self::PLAN_DEFINITIONS['free']['book_limit'];
+            return self::getPlanDefinition('free')['book_limit'];
         }
 
         if ($this->book_limit !== null) {
@@ -227,7 +227,7 @@ class User extends Authenticatable
     public function effectiveCustomerLimit(): ?int
     {
         if ($this->normalizedPlanKey() === 'free') {
-            return self::PLAN_DEFINITIONS['free']['customer_limit'];
+            return self::getPlanDefinition('free')['customer_limit'];
         }
 
         if ($this->customer_limit !== null) {
@@ -241,7 +241,7 @@ class User extends Authenticatable
     public function effectiveShowAds(): bool
     {
         if ($this->normalizedPlanKey() === 'free') {
-            return (bool) self::PLAN_DEFINITIONS['free']['show_ads'];
+            return (bool) self::getPlanDefinition('free')['show_ads'];
         }
 
         if ($this->show_ads !== null) {

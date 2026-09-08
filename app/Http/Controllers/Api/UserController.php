@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\FirebaseService;
 use App\Services\OtpService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -56,20 +57,28 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:20',
+            'email' => [
+                'sometimes', 'nullable', 'email', 'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
         ]);
-        
+
         \Log::info("Update profile request received", [
             'user_id' => $user->id,
             'request_data' => $validated,
             'current_name' => $user->name,
             'current_phone' => $user->phone,
         ]);
-        
+
         // Ensure phone is not null for new users
         if (isset($validated['phone']) && !empty($validated['phone'])) {
             $validated['phone'] = trim($validated['phone']);
         }
-        
+
+        if (isset($validated['email']) && !empty($validated['email'])) {
+            $validated['email'] = strtolower(trim($validated['email']));
+        }
+
         $user->update($validated);
         
         \Log::info("User profile updated", [
